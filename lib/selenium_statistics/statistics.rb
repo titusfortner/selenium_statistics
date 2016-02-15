@@ -39,7 +39,7 @@ module SeleniumStatistics
     @test_time = Time.now - @test_start
 
     @commands.each { |_k, v| v[:average_total] = v[:time]/@test_time}
-    @commands.sort_by { |_k, v| v[sort] }.reverse.to_h
+    @commands.sort_by { |_k, v| v[sort] }.reverse.to_a
   end
 
   def print_results(sort=nil)
