@@ -65,8 +65,8 @@ module SeleniumStatistics
 
     results(sort).each do |k,v|
       str << "#{k.to_s}:".ljust(27, ' ')
-      str << "executions: #{v[:count].to_s.rjust(4, ' ')}; "
-      str << "total seconds: #{v[:time].round(1).to_s.rjust(5, ' ')}; "
+      str << "executions: #{v[:count].to_s.rjust(executions.size, ' ')}; "
+      str << "total seconds: #{v[:time].round(1).to_s.rjust(time.round(1).to_s.size, ' ')}; "
       str << "avg sec/cmd: #{v[:average].round(3).to_s.rjust(5, ' ')}; "
       str << "total: #{(100*v[:average_total]).round(2).to_s.rjust(5, ' ')}%\n"
     end
