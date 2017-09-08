@@ -8,7 +8,18 @@ module SeleniumStatistics
   @executions = 0
   @time = 0
 
-  Selenium::WebDriver::Remote::Bridge::COMMANDS.keys.each do |command|
+  COMMANDS = Selenium::WebDriver::Remote::Bridge::COMMANDS.keys +
+      Selenium::WebDriver::Remote::W3C::Bridge::COMMANDS.keys +
+      Selenium::WebDriver::Remote::OSS::Bridge::COMMANDS.keys
+
+  COMMANDS.each do |command|
+    if command == :get_element_location_once_scrolled_into_view
+      command = :get_element_location
+    end
+    if command == :get_element_value_of_css_property
+      command = :get_element_css_value
+    end
+
     define_method("#{command}=") do |time|
       @commands[command] ||= {}
 
@@ -22,9 +33,8 @@ module SeleniumStatistics
       @executions += 1
       @time += time
 
-      if ENV['DEBUG'] == 'true'
-        puts "Executed #{command} in #{time} sec"
-      end
+      SeleniumStatistics.logger.info "Executed #{command} in #{time} sec"
+      SeleniumStatistics.logger.debug "#{command} executed total of #{@commands[command][:count]} times in #{ @commands[command][:time]} seconds"
     end
 
     define_method(command) do
@@ -32,6 +42,14 @@ module SeleniumStatistics
     end
 
     @test_start = Time.now
+  end
+
+  def get_element_location_once_scrolled_into_view=(*args)
+    self.get_element_location= args.first
+  end
+
+  def get_element_value_of_css_property=(*args)
+    self.get_element_css_value= args.first
   end
 
   def results(sort=nil)
@@ -43,16 +61,17 @@ module SeleniumStatistics
   end
 
   def print_results(sort=nil)
-    str = "Executed a total of #{executions} commands in #{time.round(1)} seconds\n"
+    str = "Executed a total of #{executions} commands in #{time.round(1)} seconds\n\n"
 
     results(sort).each do |k,v|
-      str << "\t#{k}: \n\t\t\t#{v[:count]} executions;"
-      str << "\ttotal of #{v[:time].round(1)} sec;"
-      str << "\tavg of #{v[:average].round(3)} sec/cmd;"
-      str << "\t#{(100*v[:average_total]).round(2)}% of total\n"
+      str << "#{k.to_s}:".ljust(27, ' ')
+      str << "executions: #{v[:count].to_s.rjust(4, ' ')}; "
+      str << "total seconds: #{v[:time].round(1).to_s.rjust(5, ' ')}; "
+      str << "avg sec/cmd: #{v[:average].round(3).to_s.rjust(5, ' ')}; "
+      str << "total: #{(100*v[:average_total]).round(2).to_s.rjust(5, ' ')}%\n"
     end
 
-    puts str
+    SeleniumStatistics.logger.warn str
   end
 
   def reset!
