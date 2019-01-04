@@ -9,24 +9,39 @@ describe 'Selenium Statistics' do
     driver.quit
   end
 
-  specify 'records total command count' do
+  it 'records total command count' do
     driver.get "file://#{html}"
     driver.title
-    expect(SeleniumStatistics.executions).to eql(2)
+    expect(SeleniumStatistics.executions).to eql(3)
   end
 
-  specify 'records total command time' do
+  it 'records total command time' do
     driver.get "file://#{html}"
     driver.title
-    expect(SeleniumStatistics.executions).to eql(2)
+    expect(SeleniumStatistics.executions).to eql(3)
   end
 
-  specify 'records time and count for each command' do
+  it 'records time and count for each command' do
     driver.get "file://#{html}"
     driver.title
 
-    expect(SeleniumStatistics.getTitle[:count]).to eql(1)
-    expect(SeleniumStatistics.getTitle[:time]).to be > 0
+    expect(SeleniumStatistics.get_title[:count]).to eql(1)
+    expect(SeleniumStatistics.get_title[:time]).to be > 0
   end
 
+  it 'handles get_element_location' do
+    driver.get "file://#{html}"
+    element = driver.find_element(:tag_name, 'body')
+    element.location_once_scrolled_into_view
+
+    expect(SeleniumStatistics.commands).to have_key('get_element_location')
+  end
+
+  it 'handles get_element_css_value' do
+    driver.get "file://#{html}"
+    element = driver.find_element(:tag_name, 'body')
+    element.css_value('whatever')
+
+    expect(SeleniumStatistics.commands).to have_key('get_element_css_value')
+  end
 end

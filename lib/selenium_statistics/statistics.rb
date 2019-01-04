@@ -2,54 +2,36 @@ module SeleniumStatistics
 
   extend self
 
-  attr_reader :time, :executions
+  attr_reader :time, :executions, :commands
 
   @commands = {}
   @executions = 0
   @time = 0
+  @test_start = Time.now
 
-  COMMANDS = Selenium::WebDriver::Remote::Bridge::COMMANDS.keys +
-      Selenium::WebDriver::Remote::W3C::Bridge::COMMANDS.keys +
-      Selenium::WebDriver::Remote::OSS::Bridge::COMMANDS.keys
+  def method_missing(command, time = nil)
+    command = command.to_s
+    command.gsub!('get_element_location_once_scrolled_into_view', 'get_element_location')
+    command.gsub!('get_element_value_of_css_property', 'get_element_css_value')
 
-  COMMANDS.each do |command|
-    if command == :get_element_location_once_scrolled_into_view
-      command = :get_element_location
-    end
-    if command == :get_element_value_of_css_property
-      command = :get_element_css_value
-    end
+    return @commands[command] unless command =~ /=$/
 
-    define_method("#{command}=") do |time|
-      @commands[command] ||= {}
+    command = command.chomp('=')
 
-      @commands[command][:time] ||= 0
-      @commands[command][:count] ||= 0
+    @commands[command] ||= {}
 
-      @commands[command][:time] += time
-      @commands[command][:count] += 1
-      @commands[command][:average] =  @commands[command][:time] / @commands[command][:count]
+    @commands[command][:time] ||= 0
+    @commands[command][:count] ||= 0
 
-      @executions += 1
-      @time += time
+    @commands[command][:time] += time
+    @commands[command][:count] += 1
+    @commands[command][:average] =  @commands[command][:time] / @commands[command][:count]
 
-      SeleniumStatistics.logger.info "Executed #{command} in #{time} sec"
-      SeleniumStatistics.logger.debug "#{command} executed total of #{@commands[command][:count]} times in #{ @commands[command][:time]} seconds"
-    end
+    @executions += 1
+    @time += time
 
-    define_method(command) do
-      @commands[command]
-    end
-
-    @test_start = Time.now
-  end
-
-  def get_element_location_once_scrolled_into_view=(*args)
-    self.get_element_location= args.first
-  end
-
-  def get_element_value_of_css_property=(*args)
-    self.get_element_css_value= args.first
+    SeleniumStatistics.logger.info "Executed #{command} in #{time} sec"
+    SeleniumStatistics.logger.debug "#{command} executed total of #{@commands[command][:count]} times in #{ @commands[command][:time]} seconds"
   end
 
   def results(sort=nil)
