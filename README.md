@@ -10,7 +10,7 @@ To access current results, call ```SeleniumStatistics.print_results```
 Results can be ported to a file using ```SeleniumStatistics.logger.output = file_name```
 
 Additional debugging information can be obtained by setting 
-```SeleniumStatistics.logger = :info``` or ```SeleniumStatistics.logger = :debug```
+```SeleniumStatistics.logger.level = :info``` or ```SeleniumStatistics.logger.level = :debug```
 
 ## Contributing
 
